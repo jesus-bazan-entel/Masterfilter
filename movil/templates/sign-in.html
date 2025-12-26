@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Master-Filter</title>
+    <!-- Incluyendo Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Incluyendo la fuente Inter de Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Aplicando la fuente Inter como predeterminada */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilo para el efecto de desenfoque del fondo en navegadores que lo soportan */
+        .backdrop-blur-lg {
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-gray-900">
+    <!-- Contenedor principal con imagen de fondo -->
+    <!-- Se está usando la imagen 'fondo.png' de tus archivos estáticos de Django -->
+    <!-- <div class="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat" 
+         style="background-image: url('{% static 'desing/assets/img/fondoGCC.png' %}');"> -->
+    <div class="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat" style="background-image: url('{% static 'desing/assets/img/logo2025.png' %}');">
+
+        <!-- Tarjeta de inicio de sesión con efecto de vidrio -->
+        <div class="w-full max-w-sm p-8 space-y-8 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-2xl shadow-2xl backdrop-blur-lg mt-64">
+            
+            <!-- Título -->
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-white">
+                    Iniciar Sesión
+                </h2>
+            </div>
+
+            <!-- Formulario -->
+            <form class="mt-8 space-y-6" action="" method="POST">
+                {% csrf_token %}
+                
+                <!-- Campo de Usuario o Email -->
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <!-- Icono de usuario (SVG) -->
+                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <input id="username" name="username" type="text" autocomplete="username" required 
+                           class="appearance-none rounded-md relative block w-full px-3 py-3 pl-10 border border-gray-600 bg-gray-700 bg-opacity-50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                           placeholder="Email or Username">
+                </div>
+                
+                <!-- Campo de Contraseña -->
+                <div class="relative mt-4">
+                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <!-- Icono de candado (SVG) -->
+                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <input id="password" name="password" type="password" autocomplete="current-password" required 
+                           class="appearance-none rounded-md relative block w-full px-3 py-3 pl-10 border border-gray-600 bg-gray-700 bg-opacity-50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                           placeholder="Password">
+                </div>
+
+                <!-- Mensaje de validación de Django -->
+                {% if valid %}
+                <div class="text-center p-2 bg-red-800 bg-opacity-50 rounded-md">
+                    <p class="text-white text-sm">{{valid}}</p>
+                </div>
+                {% endif %}
+
+                <!-- Botón de Iniciar Sesión -->
+                <div class="pt-6">
+                    <button type="submit" 
+                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 transition-colors duration-300">
+                        Iniciar Sesión
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Ya no necesitas los scripts de bootstrap o material-dashboard -->
+</body>
+</html>

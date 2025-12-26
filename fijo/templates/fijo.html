@@ -1,0 +1,369 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+   <style>
+    
+    .scrollDrop {
+            margin: 2px, 2px;
+            padding: 2px;
+            background-color: rgba(255, 255, 255, 0.0);
+            width: 100%;
+            height: 400px;
+            overflow-y: auto;
+            overflow-y:scroll;
+            overflow-x: scroll;
+            border-radius: 5px;
+        }
+   </style>
+      <div class="row">
+        <div class="col-12">
+            <div class=" m-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xl-3 col-sm-6 mb-xl-0">
+                            <div class="card h-100  bg-violeta text-white">
+                              <div class="card-header p-3 pt-2 bg-violeta">
+                                <div class="icon icon-lg icon-shape bg-gradient-dark shadow-dark text-center border-radius-xl mt-n4 position-absolute">
+                                  <i class="material-icons opacity-10">weekend</i>
+                                </div>
+                                <div class="text-end pt-1">
+                                  <h5 class="mb-0 text-white">Total Procesados</h5>
+                                  <h3 class="mb-0 text-white" id="total">0</h3>
+                                </div>
+                              </div>
+                              
+                            </div>
+                          </div>
+                          <div class="col-xl-3 col-sm-6 mb-xl-0">
+                            <div class="card h-100 bg-verde text-white">
+                              <div class="card-header p-3 pt-2 bg-verde text-white">
+                                <div class="icon icon-lg icon-shape bg-gradient-dark shadow-primary text-center border-radius-xl mt-n4 position-absolute">
+                                  <i class="material-icons opacity-10">weekend</i>
+                                </div>
+                                <div class="text-end pt-1">
+                                  <h5 class="mb-0 text-white">Subido</h5>
+                                  <h3 class="mb-0 text-white" id="subido">{{subido}}</h3>
+                                </div>
+                              </div>
+                              
+                            </div>
+                          </div>
+                          <div class="col-xl-3 col-sm-6 mb-xl-0 ">
+                            <div class="card h-100 bg-rojo text-white">
+                              <div class="card-header p-3 pt-2 bg-rojo text-white">
+                                <div class="icon icon-lg icon-shape bg-gradient-dark  shadow-success text-center border-radius-xl mt-n4 position-absolute">
+                                  <i class="material-icons opacity-10">weekend</i>
+                                </div>
+                                <div class="text-end pt-1">
+                                  <h5 class="mb-0 text-white">Procesado</h5>
+                                  <h4 class="mb-0 text-white" id="procesado">0</h4>
+                                </div>
+                              </div>
+                              
+                            </div>
+                          </div>
+                          <div class="col-xl-3 col-sm-6 mb-xl-0 ">
+                            <div class="card h-100 bg-naranja text-white">
+                            
+                              <div class="card-header p-3 pt-2 bg-naranja text-white">
+                                <form action="/fijo/upload" enctype="multipart/form-data" method="post">{% csrf_token %}
+                                  <h5 class="mb-0 text-white">Subir archivo</h5>
+                                  <div class="row">
+                                    <div class="col-md-12">
+                                      <input type="file" class="form-control form-control-sm text-white" name="file">
+                                    </div>
+                                    <div class="col-md-12">
+                                        <button class="btn btn-sm bg-verde text-white">Procesar</button>
+                                    </div>
+                                  </div>
+                                  
+                                </form>
+                              </div>
+                              
+                            
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+          <div class="card my-4 m-4">
+            <div class="card-header p-0 position-relative mt-n4 z-index-2">
+              <div class="bg-white shadow-white border-radius-lg pt-1 pb-1">
+                <h6 class="text-black text-capitalize ps-3">Consultas fijos</h6>
+              </div>
+            </div>
+            <div class="card-body px-4 pb-2">
+              <div class="table-responsive p-0 scrollDrop">
+                  <table class="table align-items-center justify-content-center mb-0" style="overflow: hidden">
+                    <thead>
+                      <tr>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">ID</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Nombre Base</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Fecha Carga</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Registros</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Progreso</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Estado</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Accion</th>
+                      </tr>
+                    </thead>
+                    <tbody id="addtableFile">
+                    </tbody>
+                  </table>
+              </div>
+          </div>
+            <!--<div class="card-body px-4 pb-2">
+                <div class="table-responsive p-0">
+                    <table class="table align-items-center justify-content-center mb-0" style="overflow: hidden">
+                        <thead>
+                        <tr>
+                            <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Numero</th>
+                            <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Operador</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="table-responsive p-0 scrollDrop">
+                    <table class="table align-items-center justify-content-center mb-0" style="overflow: hidden">
+                    
+                        <tbody id="addtable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>-->
+          </div>
+        </div>
+      </div>
+      <script>
+        var dataFull;
+
+        function getCookie(name) {
+          var cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+                }
+            }
+          }
+          return cookieValue;
+        }
+
+        var csrftoken = getCookie('csrftoken');
+
+
+        function exportar(name) {
+            console.log('ARDILLA EXPORTAR');
+            //loader();
+            $.ajax({
+                url: '/fijo/export',
+                //url: 'https://www.masterfilter.es/export',
+                type: 'POST',
+                data:{
+                    data: JSON.stringify(dataFull).toString()
+                },
+                headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+                success: function(json) {
+                    //console.log(json);
+                    respuesta = JSON.parse(json);
+                    download(respuesta.name, respuesta.path);
+                },
+                error: function(error) {
+                    console.log(error)
+                }
+            });
+        }
+        function reanude(file){
+          $.ajax({
+            url: '/fijo/reanude',
+            type: 'POST',
+            data:{
+              file: file
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              data = json;
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        function pause(file){
+          $.ajax({
+            //url: '{{endpoint.fijo}}/pause/',
+            url: 'https://apifijo.masterfilter.es/pause/',
+            type: 'POST',
+            data:{
+              user: '{{request.user.username}}',
+              file: file
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              data = json;
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        function deleteBase(id){
+          $.ajax({
+            //url: '{{endpoint.fijo}}/remove/',
+            url: 'https://apifijo.masterfilter.es/remove/',
+            type: 'POST',
+            data:{
+              user: '{{request.user.username}}',
+              id: id
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              data = json;
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        function consult(id){
+          $.ajax({
+            //url: '{{endpoint.fijo}}/consult/',
+            url: 'https://apifijo.masterfilter.es/consult/',
+            type: 'POST',
+            data:{
+                user: '{{request.user.username}}',
+                id: id
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              data = json;
+              dataFull = data;
+              //console.log(data)
+              /*$("#addtable").text("");
+              data.data.list.forEach(element => {
+                $("#addtable").append(
+                    '<tr>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.number+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.operator+'</p>'+
+                      '</td>'+
+                    '</tr>'
+                );
+              });*/
+              $("#total").text("");
+              $("#total").append(data.data.total);
+              $("#procesado").text("");
+              $("#procesado").append(data.data.proces);
+              $("#subido").text("");
+              $("#subido").append(data.data.subido);
+              exportar();
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        //consult();
+        //setInterval(function(){
+        //  consult();
+        //},5000);
+        function consultFile(){
+          console.log("Samcito! fijo.html consultFile");
+          $.ajax({
+            //url: '{{endpoint.fijo}}/filter_data/',
+            url: 'https://apifijo.masterfilter.es/filter_data/',
+            type: 'POST',
+            data:{
+              user: '{{request.user.username}}'
+            },
+            xhrFields: {
+                    withCredentials: true  // Esto asegura que las cookies de sesión se envíen
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              data = json;
+              dataFull = data;
+              
+              $("#addtableFile").text("");
+              data.data.forEach(element => {
+                buttonStr = '<span class="text-rojo mr-2" disabled>Reanudar</span>';
+                buttonStr2 = '';
+                if (element.finish){
+                  buttonStr = '<span class="btn btn-sm text-verde mr-2">Finalizado</span>';
+                }
+                if (element.active){
+                  buttonStr = '<span class="btn btn-sm text-naranja mr-2">En Progreso</span>';
+                }
+                if (!element.finish && element.active){
+                  buttonStr2 = '<button class="btn btn-sm bg-rojo text-white mr-2" type="button" onclick="pause(\''+element.file+'\')">Pausar</button>';
+                }
+                if (!element.finish && !element.active){
+                  buttonStr2 = '<button class="btn btn-sm bg-naranja text-white mr-2" type="button" onclick="reanude(\''+element.file+'\')">Reanudar</button>';
+                }
+                buttonDelete = "";
+                if (!element.active){
+                  buttonDelete = '<button class="btn btn-sm bg-rojo text-white mr-2" type="button" onclick="deleteBase(\''+element.id+'\')">Eliminar</button>';
+                }
+                $("#addtableFile").append(
+                    '<tr>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.id+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.file+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.created+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.total+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.progres+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+buttonStr+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+buttonStr2+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0"><button class="btn btn-sm bg-verde text-white mr-2" type="button" onclick="consult(\''+element.id+'\')">Descargar</button></p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+buttonDelete+'</p>'+
+                      '</td>'+
+                    '</tr>'
+                );
+              });
+              /*$("#total").text("");
+              $("#total").append(data.data.total);
+              $("#procesado").text("");
+              $("#procesado").append(data.data.proces);*/
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        consultFile();
+        setInterval(function(){
+          consultFile();
+        },8000);
+      </script>
+      <script>
+        function download(filename, textInput) {
+          var element = document.createElement('a');
+          element.setAttribute('href',textInput);
+          element.setAttribute('download', filename);
+          document.body.appendChild(element);
+          element.click();
+          $("#loader").text("");
+        }
+      </script> 
+{% endblock %}

@@ -1,0 +1,320 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+   <style>
+    
+    .scrollDrop {
+            margin: 2px, 2px;
+            padding: 2px;
+            background-color: rgba(255, 255, 255, 0.0);
+            width: 100%;
+            height: 400px;
+            overflow-y: auto;
+            overflow-y:scroll;
+            overflow-x: hidden;
+            border-radius: 5px;
+        }
+   </style>
+      <div class="row">
+        <div class="col-12">
+            <div class=" m-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+                            <div class="card">
+                              <div class="card-header p-3 pt-2">
+                                <div class="icon icon-lg icon-shape bg-gradient-dark shadow-dark text-center border-radius-xl mt-n4 position-absolute">
+                                  <i class="material-icons opacity-10">weekend</i>
+                                </div>
+                                <div class="text-end pt-1">
+                                  <p class="text-sm mb-0 text-capitalize">Total Procesados</p>
+                                  <h4 class="mb-0" id="total">0</h4>
+                                </div>
+                              </div>
+                              <hr class="dark horizontal my-0">
+                              <div class="card-footer p-3">
+                                <p class="mb-0"><span class="text-success text-sm font-weight-bolder"></span></p>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+                            <div class="card">
+                              <div class="card-header p-3 pt-2">
+                                <div class="icon icon-lg icon-shape bg-mora shadow-primary text-center border-radius-xl mt-n4 position-absolute">
+                                  <i class="material-icons opacity-10">person</i>
+                                </div>
+                                <div class="text-end pt-1">
+                                  <p class="text-sm mb-0 text-capitalize">Subido</p>
+                                  <h4 class="mb-0" id="subido">{{subido}}</h4>
+                                </div>
+                              </div>
+                              <hr class="dark horizontal my-0">
+                              <div class="card-footer p-3">
+                                <button class="btn btn-sm bg-mora text-white mr-4" type="button" onclick="reanude()">Reanudar</button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+                            <div class="card">
+                              <div class="card-header p-3 pt-2">
+                                <div class="icon icon-lg icon-shape bg-mora shadow-success text-center border-radius-xl mt-n4 position-absolute">
+                                  <i class="material-icons opacity-10">person</i>
+                                </div>
+                                <div class="text-end pt-1">
+                                  <p class="text-sm mb-0 text-capitalize">Procesado</p>
+                                  <h4 class="mb-0" id="procesado">0</h4>
+                                </div>
+                              </div>
+                              <hr class="dark horizontal my-0">
+                              <div class="card-footer p-3">
+                                <p class="mb-0"><span class="text-danger text-sm font-weight-bolder"></span></p>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-xl-3 col-sm-6">
+                            <div class="card">
+                            <form action="/orange2/upload" enctype="multipart/form-data" method="post">{% csrf_token %}
+                              <div class="card-header p-3 pt-2">
+                                
+                                <div class="text-end pt-1">
+                                  <p class="text-sm mb-0 text-capitalize">Subir archivo</p>
+                                  <input type="file" class="form-control form-control-sm" name="file">
+                                </div>
+                              </div>
+                              <hr class="dark horizontal my-0">
+                              <div class="card-footer p-3">
+                                <button class="btn btn-sm bg-mora text-white">Procesar</button>
+                                <button class="btn btn-sm bg-mora text-white mr-2" type="button" onclick="exportar()">Descargar Datos</button>
+                              </div>
+                            </form>
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+          <div class="card my-4 m-4">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+              <div class="bg-mora shadow-success border-radius-lg pt-4 pb-3">
+                <h6 class="text-white text-capitalize ps-3">Orange2</h6>
+              </div>
+            </div>
+            <div class="card-body px-4 pb-2">
+              <div class="table-responsive p-0 scrollDrop">
+                  <table class="table align-items-center justify-content-center mb-0" style="overflow: hidden">
+                    <thead>
+                      <tr>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">ID</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Nombre Base</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Fecha Carga</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Registros</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Progreso</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Estado</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Accion</th>
+                      </tr>
+                    </thead>
+                    <tbody id="addtableFile">
+                    </tbody>
+                  </table>
+              </div>
+          </div>
+            <!--<div class="card-body px-4 pb-2">
+                <div class="table-responsive p-0">
+                    <table class="table align-items-center justify-content-center mb-0" style="overflow: hidden">
+                        <thead>
+                        <tr>
+                            <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Numero</th>
+                            <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Operador</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="table-responsive p-0 scrollDrop">
+                    <table class="table align-items-center justify-content-center mb-0" style="overflow: hidden">
+                    
+                        <tbody id="addtable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>-->
+          </div>
+        </div>
+      </div>
+      <script>
+        var dataFull;
+        function exportar(name) {
+            //loader();
+            $.ajax({
+                url: '/export',
+                type: 'POST',
+                data:{
+                    data: JSON.stringify(dataFull).toString(),
+                    //nameFile: name
+                },
+                headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+                success: function(json) {
+                    //console.log(json);
+                    respuesta = JSON.parse(json);
+                    download(respuesta.name, respuesta.path);
+                },
+                error: function(error) {
+                    console.log(error)
+                }
+            });
+        }
+        function reanude(file){
+          $.ajax({
+            url: '/reanude',
+            type: 'POST',
+            data:{
+              file: file
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              data = json;
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        function pause(file){
+          $.ajax({
+            url: '{{endpoint.movil}}/pause/',
+            type: 'POST',
+            data:{
+              user: '{{request.user.username}}',
+              file: file
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              data = json;
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        function consult(id){
+          $.ajax({
+            url: '{{endpoint.movil}}/consult/',
+            type: 'POST',
+            data:{
+                user: '{{request.user.username}}',
+                id: id
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              data = json;
+              dataFull = data;
+              //console.log(data)
+              /*$("#addtable").text("");
+              data.data.list.forEach(element => {
+                $("#addtable").append(
+                    '<tr>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.number+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.operator+'</p>'+
+                      '</td>'+
+                    '</tr>'
+                );
+              });*/
+              $("#total").text("");
+              $("#total").append(data.data.total);
+              $("#procesado").text("");
+              $("#procesado").append(data.data.proces);
+              $("#subido").text("");
+              $("#subido").append(data.data.subido);
+              exportar();
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        //consult();
+        //setInterval(function(){
+        //  consult();
+        //},5000);
+        function consultFile(){
+          $.ajax({
+            url: '{{endpoint.movil}}/filter_data/',
+            type: 'POST',
+            data:{
+              user: '{{request.user.username}}'
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              data = json;
+              dataFull = data;
+              
+              $("#addtableFile").text("");
+              data.data.forEach(element => {
+                buttonStr = '<button class="btn btn-sm bg-danger text-white mr-2" type="button" disabled>Reanudar</button>';
+                buttonStr2 = '<button class="btn btn-sm bg-mora text-white mr-2" type="button" onclick="consult(\''+element.id+'\')">Descargar</button>';
+                if (element.finish){
+                  buttonStr = '<button class="btn btn-sm bg-success text-white mr-2" disabled type="button">Finalizado</button>';
+                }
+                if (element.active){
+                  buttonStr = '<button class="btn btn-sm bg-warning text-white mr-2" disabled type="button" >En Progreso</button>';
+                }
+                if (!element.finish && element.active){
+                  buttonStr2 = '<button class="btn btn-sm bg-mora text-white mr-2" type="button" onclick="pause(\''+element.file+'\')">Pausar</button>';
+                }
+                if (!element.finish && !element.active){
+                  buttonStr2 = '<button class="btn btn-sm bg-mora text-white mr-2" type="button" onclick="reanude(\''+element.file+'\')">Reanudar</button>';
+                }
+                $("#addtableFile").append(
+                    '<tr>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.id+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.file+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.created+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.total+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+element.progres+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+buttonStr+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0">'+buttonStr2+'</p>'+
+                      '</td>'+
+                    '</tr>'
+                );
+              });
+              /*$("#total").text("");
+              $("#total").append(data.data.total);
+              $("#procesado").text("");
+              $("#procesado").append(data.data.proces);*/
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        consultFile();
+        setInterval(function(){
+          consultFile();
+        },5000);
+      </script>
+      <script>
+        function download(filename, textInput) {
+          var element = document.createElement('a');
+          element.setAttribute('href',textInput);
+          element.setAttribute('download', filename);
+          document.body.appendChild(element);
+          element.click();
+          $("#loader").text("");
+        }
+      </script> 
+{% endblock %}

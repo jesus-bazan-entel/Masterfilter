@@ -1,0 +1,497 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<!-- Modern dashboard styles -->
+<style>
+  :root {
+    --violet: #8e44ad;
+    --green: #27ae60;
+    --red: #c0392b;
+    --orange: #e67e22;
+    --shadow-light: rgba(0, 0, 0, 0.1);
+  }
+  .dashboard {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+  .card-stat {
+    flex: 1 1 200px;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px var(--shadow-light);
+    padding: 1rem;
+  }
+  .card-stat .icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: #fff;
+  }
+  .icon-violet  { background: var(--violet); }
+  .icon-green   { background: var(--green); }
+  .icon-red     { background: var(--red); }
+  .icon-orange  { background: var(--orange); }
+  .stat-info h5 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-info h3,
+  .stat-info h4 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #222;
+  }
+  .card-upload {
+    flex: 1 1 240px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px var(--shadow-light);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-upload h5 {
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    text-align: center;
+  }
+  .card-upload input[type="file"] {
+    margin-bottom: 1rem;
+  }
+  .card-upload .btn-upload {
+    width: 100%;
+  }
+
+  .table-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px var(--shadow-light);
+    overflow: hidden;
+  }
+  .table-card .card-header {
+    background: #fff;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .table-card .card-header h6 {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+    text-transform: capitalize;
+  }
+  .table-container {
+    max-height: 400px;
+    overflow: auto;
+  }
+  .table-container table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .table-container thead {
+    position: sticky;
+    top: 0;
+    background: #fafafa;
+    z-index: 1;
+  }
+  .table-container th,
+  .table-container td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.875rem;
+    color: #444;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .table-container th {
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .table-container tr:hover {
+    background: #f9f9f9;
+  }
+
+  /* Buttons & badges */
+  .btn-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    margin: 0 0.25rem;
+  }
+  .btn-info    { background: #00bcd4; color: #fff; }
+  .btn-success { background: #4caf50; color: #fff; }
+  .btn-warning { background: #ff9800; color: #fff; }
+  .btn-danger  { background: #f44336; color: #fff; }
+  .btn-circle:hover { opacity: 0.9; }
+
+  .badge-state {
+    display: inline-block;
+    padding: 0.25em 0.75em;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .badge-paused     { background: #6c757d; }
+  .badge-inprogress { background: var(--orange); }
+  .badge-finished   { background: var(--green); }
+</style>
+<style>
+  #loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.6);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .spinner {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+<div class="dashboard">
+  <!-- Estadísticas -->
+  <div class="stats-row">
+    {% if not perm.movil_individual %}
+    <div class="card-stat">
+      <div class="icon-circle icon-violet">
+        <i class="material-icons">weekend</i>
+      </div>
+      <div class="stat-info">
+        <h5>Total Procesados</h5>
+        <h3 id="total">0</h3>
+      </div>
+    </div>
+    <div class="card-stat">
+      <div class="icon-circle icon-green">
+        <i class="material-icons">file_upload</i>
+      </div>
+      <div class="stat-info">
+        <h5>Subido</h5>
+        <h3 id="subido">{{ subido }}</h3>
+      </div>
+    </div>
+    <div class="card-stat">
+      <div class="icon-circle icon-red">
+        <i class="material-icons">check_circle</i>
+      </div>
+      <div class="stat-info">
+        <h5>Procesado</h5>
+        <h4 id="procesado">0</h4>
+      </div>
+    </div>
+    <div class="card-upload">
+      <h5>Subir archivo</h5>
+      <form action="/upload" enctype="multipart/form-data" method="POST">
+        {% csrf_token %}
+        <input type="file" name="file" class="form-control form-control-sm">
+        <button type="submit" class="btn btn-success btn-upload mt-2">
+          <i class="material-icons">cloud_upload</i> Procesar
+        </button>
+      </form>
+    </div>
+    {% else %}
+    <div class="card-upload">
+      <h5>Consulta individual</h5>
+      {% csrf_token %}
+      <input type="text" name="phone_individual" id="phone_individual" class="form-control form-control-sm bg-mora text-black" placeholder="Celular">
+      <button type="submit" class="btn btn-success btn-upload mt-2" onclick="consult_individual()">
+        <i class="material-icons">cloud_upload</i> Consultar
+      </button>
+    </div>
+    <div class="card-stat">
+      <div class="icon-circle icon-red">
+        <i class="material-icons">check_circle</i>
+      </div>
+      <div class="stat-info">
+        <h5>Numero consultado</h5>
+        <h4 id="phone_consult"></h4>
+      </div>
+    </div>
+    <div class="card-stat">
+      <div class="icon-circle icon-red">
+        <i class="material-icons">check_circle</i>
+      </div>
+      <div class="stat-info">
+        <h5>Operador</h5>
+        <h4 id="oper_consult"></h4>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% if not perm.movil_individual %}
+  <!-- Tabla de consultas -->
+  <div class="table-card">
+    <div class="card-header">
+      <h6>Consultas móviles</h6>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre Base</th>
+            <th>Fecha Carga</th>
+            <th>Registros</th>
+            <th>Progreso</th>
+            <th>Estado</th>
+            <th>Acción</th>
+            <th>Descarga</th>
+            <th>Eliminar</th>
+          </tr>
+        </thead>
+        <tbody id="addtableFile"></tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+<div id="loader" style="display: none;">
+  <div class="spinner"></div>
+</div>
+<!-- Scripts existentes -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{% block scripts %}
+{% if not perm.movil_individual %}
+<script>
+  var dataFull;
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      document.cookie.split(';').forEach(c => {
+        c = c.trim();
+        if (c.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(c.slice(name.length + 1));
+        }
+      });
+    }
+    return cookieValue;
+  }
+
+  function exportar(name) {
+    const csrftoken = $('[name=csrfmiddlewaretoken]').val();
+    $.ajax({
+      url: '/export',
+      type: 'POST',
+      data: { data: JSON.stringify(dataFull) },
+      xhrFields: { withCredentials: true },
+      headers: { "X-CSRFToken": csrftoken },
+      success: function(json) {
+        const respuesta = JSON.parse(json);
+        download(respuesta.file, respuesta.path);
+      },
+      error: function(xhr, status, error) {
+        console.error("Error exportar:", status, error);
+      }
+    });
+  }
+
+  function reanude(file) {
+    $.ajax({
+      url: 'https://www.masterfilter.es/reanude',
+      type: 'POST',
+      data: { file },
+      headers: { "X-CSRFToken": $('[name=csrfmiddlewaretoken]').val() },
+      success: d => dataFull = d,
+      error: () => console.error("Error reanude")
+    });
+  }
+
+  function pause(file) {
+    $.ajax({
+      url: 'https://api.masterfilter.es/pause/',
+      type: 'POST',
+      data: { user: '{{ request.user.username }}', file },
+      headers: { "X-CSRFToken": $('[name=csrfmiddlewaretoken]').val() },
+      success: d => dataFull = d,
+      error: () => console.error("Error pause")
+    });
+  }
+
+  function deleteBase(id) {
+    $.ajax({
+      url: '{{ endpoint.movil }}/remove/',
+      type: 'POST',
+      data: { user: '{{ request.user.username }}', id },
+      headers: { "X-CSRFToken": $('[name=csrfmiddlewaretoken]').val() },
+      success: d => dataFull = d,
+      error: () => console.error("Error deleteBase")
+    });
+  }
+
+  function consult(id) {
+    $.ajax({
+      url: '{{ endpoint.movil }}/consult/',
+      type: 'POST',
+      data: { user: '{{ request.user.username }}', id },
+      xhrFields: { withCredentials: true },
+      headers: { "X-CSRFToken": $('[name=csrfmiddlewaretoken]').val() },
+      success: function(json) {
+        dataFull = json;
+        $("#total").text(dataFull.data.total);
+        $("#procesado").text(dataFull.data.proces);
+        $("#subido").text(dataFull.data.subido);
+        exportar(dataFull.nameFile);
+      },
+      error: () => console.error("Error consult")
+    });
+  }
+
+  function consultFile() {
+    $.ajax({
+      url: 'https://api.masterfilter.es/filter_data/',
+      type: 'POST',
+      data: { user: '{{ request.user.username }}' },
+      xhrFields: { withCredentials: true },
+      headers: { "X-CSRFToken": $('[name=csrfmiddlewaretoken]').val() },
+      success: function(json) {
+        dataFull = json;
+        const tbody = $("#addtableFile").empty();
+        dataFull.data.forEach(el => {
+          // Estado badge
+          let badgeClass = el.finish
+            ? 'badge-state badge-finished'
+            : (el.active
+               ? 'badge-state badge-inprogress'
+               : 'badge-state badge-paused');
+          let badgeText = el.finish
+            ? 'Finalizado'
+            : (el.active
+               ? 'En progreso'
+               : 'Pausado');
+          // Acción icon
+          let actionBtn = '';
+          if (!el.finish) {
+            if (el.active) {
+              actionBtn = `<button class="btn btn-warning btn-circle" title="Pausar" onclick="pause('${el.file}')">
+                             <i class="material-icons">pause</i>
+                           </button>`;
+            } else {
+              actionBtn = `<button class="btn btn-info btn-circle" title="Reanudar" onclick="reanude('${el.file}')">
+                             <i class="material-icons">play_arrow</i>
+                           </button>`;
+            }
+          }
+          // Descarga & eliminar
+          const downloadBtn = `<button class="btn btn-success btn-circle" title="Descargar" onclick="consult('${el.id}')">
+                                 <i class="material-icons">file_download</i>
+                               </button>`;
+          const deleteBtn = `<button class="btn btn-danger btn-circle" title="Eliminar" onclick="deleteBase('${el.id}')">
+                                <i class="material-icons">delete</i>
+                              </button>`;
+
+          tbody.append(`
+            <tr>
+              <td>${el.id}</td>
+              <td>${el.file}</td>
+              <td>${el.created}</td>
+              <td>${el.total}</td>
+              <td>${el.progres}</td>
+              <td><span class="${badgeClass}">${badgeText}</span></td>
+              <td>${actionBtn}</td>
+              <td>${downloadBtn}</td>
+              <td>${deleteBtn}</td>
+            </tr>
+          `);
+        });
+      },
+      error: () => console.error("Error consultFile")
+    });
+  }
+
+  $(document).ready(function() {
+    consultFile();
+    setInterval(consultFile, 10000);
+  });
+
+  function download(filename, url) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+</script>
+{% else %}
+<script>
+  function consult_individual() {
+    const phone = document.getElementById("phone_individual").value;
+    console.log(phone);
+    $("#phone_consult").text(phone);
+    
+    // Mostrar loader
+    $("#loader").show();
+
+    $.ajax({
+      url: '/consult_individual',
+      type: 'POST',
+      data: JSON.stringify({ phone: phone }),
+      contentType: 'application/json',
+      dataType: 'json',
+      xhrFields: { withCredentials: true },
+      headers: {
+        "X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()
+      },
+      success: function(json) {
+        console.log(json);
+        if (json.success) {
+          $("#oper_consult").text(json.operator.tradeName || json.operator.name || "Desconocido");
+        } else {
+          $("#oper_consult").text("No encontrado");
+        }
+      },
+      error: () => {
+        console.error("Error consult");
+        $("#oper_consult").text("Error de conexión");
+      },
+      complete: function () {
+        // Ocultar loader siempre que termine
+        $("#loader").hide();
+      }
+    });
+  }
+</script>
+{% endif %}
+{% endblock %}
+
+{% endblock %}

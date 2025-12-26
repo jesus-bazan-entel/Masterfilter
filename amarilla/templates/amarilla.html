@@ -1,0 +1,323 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+   <style>
+    
+      .scrollDrop {
+            margin: 2px, 2px;
+            padding: 2px;
+            background-color: rgba(255, 255, 255, 0.0);
+            width: 100%;
+            height: 400px;
+            overflow-y: auto;
+            overflow-y:scroll;
+            overflow-x: scroll;
+            border-radius: 5px;
+        }
+
+        .scrollDrop2 {
+            margin: 2px, 2px;
+            padding: 2px;
+            background-color: rgba(255, 255, 255, 0.0);
+            width: 100%;
+            height: 150px;
+            overflow-y: auto;
+            overflow-y:scroll;
+            overflow-x: hidden;
+            border-radius: 5px;
+        }
+   </style>
+      <div class="row">
+        <div class="col-12">
+            <div class=" m-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xl-9 col-sm-6 mb-xl-0 mb-4">
+                            <div class="card">
+                              <div class="card-header p-3 pt-2">
+                                <div class="row m-2">
+                                  <div class="col-md-9">
+                                    <div class="row">
+                                      <div class="col-4">
+                                        <input type="text" class="btn btn-sm bg-mora text-white" placeholder="Nombre" id="name">
+                                      </div>
+                                      <div class="col-4">
+                                        <select class="btn btn-sm bg-mora text-white" placeholder="Pais" id="pais">
+                                          <option>----Seleccionar Pais----</option>
+                                          <option value="espana">España</option>
+                                        </select>
+                                      </div>
+                                      <div class="col-4">
+                                        <select class="btn btn-sm bg-mora text-white" placeholder="Ciudad" id="city">
+                                          <option>----Seleccionar Ciudad----</option>
+                                        </select>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-3">
+                                    <div class="row">
+                                      <div class="col-6">
+                                        <button class="btn btn-sm bg-mora text-white" type="button" onclick="search()">Buscar</button>
+                                      </div>
+                                      <div class="col-6">
+                                        <button class="btn btn-sm bg-mora text-white" type="button" onclick="closeProcess()">Finalizar</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+                            <div class="card">
+                              <div class="card-header p-3 pt-2">
+                                <div class="text-center pt-1">
+                                  <p class="text-sm mb-0 text-capitalize">Procesado</p>
+                                  <div class="row scrollDrop2" id="process">
+                                     
+                                  </div>
+                                </div>
+                              </div>
+                              <hr class="dark horizontal my-0">
+                              <div class="card-footer p-3">
+                                <p class="mb-0"><span class="text-danger text-sm font-weight-bolder"></span></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+          <div class="card my-4 m-4">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+              <div class="bg-mora shadow-success border-radius-lg pt-4 pb-3">
+                <h6 class="text-white text-capitalize ps-3">Lista de personas - <span id="activeProcess"></span></h6>
+              </div>
+            </div>
+            <div class="card-body px-4 pb-2">
+              <div class="table-responsive p-0 scrollDrop">
+                  <table class="table align-items-center justify-content-center mb-0" style="overflow: hidden">
+                    <thead>
+                      <tr>
+                        <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Nombre</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Telefono</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Direccion</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Localidad</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Ciudad</th>
+                          <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Codigo Postal</th>
+                      </tr>
+                    </thead>
+                    <tbody id="addtableFile">
+                    </tbody>
+                  </table>
+              </div>
+          </div>
+            <!--<div class="card-body px-4 pb-2">
+                <div class="table-responsive p-0">
+                    <table class="table align-items-center justify-content-center mb-0" style="overflow: hidden">
+                        <thead>
+                        <tr>
+                            <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Numero</th>
+                            <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Operador</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="table-responsive p-0 scrollDrop">
+                    <table class="table align-items-center justify-content-center mb-0" style="overflow: hidden">
+                    
+                        <tbody id="addtable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>-->
+          </div>
+        </div>
+      </div>
+      <script>
+        var dataFull;
+        var apiUrl = "{{endpoint.amarilla}}"
+        //var apiUrl = "https://arles.masterfilter.es"
+        function exportar(fileData) {
+            $.ajax({
+                url: '/arles/export',
+                type: 'POST',
+                data:{
+                    data: fileData,
+                },
+                headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+                success: function(json) {
+                    respuesta = JSON.parse(json);
+                    download(respuesta.name, respuesta.path); 
+                },
+                error: function(error) {
+                    console.log(error)
+                }
+            });
+        }
+        function search(){
+          $.ajax({
+            url: apiUrl+'/api/search/',
+            //url: 'https://amarilla.masterfilter.es/consult/',
+            type: 'POST',
+            data:{
+              user: '{{request.user.username}}',
+              pais: document.getElementById("pais").value.toLowerCase(),
+              city: document.getElementById("city").value.toLowerCase(),
+              name: document.getElementById("name").value.toLowerCase()
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              console.log(json);
+              if (json.data != "Proceso inactivo"){
+                setTimeout(function(){
+                  process()
+                }, 8000);
+              }
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        function searchWithProcess(itemId){
+          $.ajax({
+            url: apiUrl+'/api/get_search/',
+            type: 'POST',
+            data:{
+              user: '{{request.user.username}}',
+              process: itemId,
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              console.log(json);
+              exportar(JSON.stringify(json).toString())
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        function closeProcess(){
+          $.ajax({
+            url: apiUrl+'/api/close/',
+            type: 'POST',
+            data:{
+              user: '{{request.user.username}}'
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              console.log(json);
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        function process(){
+          $.ajax({
+            url: apiUrl+'/api/get_process/',
+            type: 'POST',
+            data:{
+                user: '{{request.user.username}}'
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              data = json;
+              //console.log(data)
+              $("#process").text("");
+              data.data.forEach(element => {
+                $("#process").append(
+                  '<div class="col-12">'+
+                    '<button class="btn btn-sm bg-mora text-white mr-4" onclick="searchWithProcess('+element.id+')">Descargar base Id '+element.id+'</button>'+
+                  '</div>'
+                );
+              })
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        function state_search(){
+          $.ajax({
+            url: apiUrl+'/api/state_search/',
+            type: 'POST',
+            data:{
+              user: '{{request.user.username}}'
+            },
+            headers: {"X-CSRFToken": $('[name=csrfmiddlewaretoken]').val()},
+            success: function(json) {
+              data = json;
+              console.log(data)
+              if (data.data != "Proceso inactivo"){
+                $("#addtableFile").text("");
+                data.data.forEach(element => {
+                $("#addtableFile").append(
+                    '<tr>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0 text-break overflow-wrap" >'+element.name+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0 text-break overflow-wrap">'+element.telephone+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0 text-break overflow-wrap">'+element.address+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0 text-break overflow-wrap" >'+element.streetAddress+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0 text-break overflow-wrap">'+element.addressLocality+'</p>'+
+                      '</td>'+
+                      '<td>'+
+                        '<p class="text-sm font-weight-bold mb-0 text-break overflow-wrap">'+element.postalCode+'</p>'+
+                      '</td>'+
+                    '</tr>'
+                  );
+                });
+                $("#activeProcess").text("");
+                $("#activeProcess").append("Proceso activo");
+              }else{
+                $("#activeProcess").text("");
+                $("#activeProcess").append(data.data);
+              }
+              /*$("#total").text("");
+              $("#total").append(data.data.total);
+              $("#procesado").text("");
+              $("#procesado").append(data.data.proces);*/
+            },
+            error: function(error) {
+              console.log("Ocurrio un error");
+            }
+          });
+        }
+        process()
+        setInterval(function(){
+          state_search();
+        },8000);
+        const pais = {
+          "espana": [
+            "A Coruna","Alava","Albacete","Alicante","Almeria","Asturias","Avila","Badajoz","Baleares","Barcelona","Burgos","Caceres","Cadiz","Cantabria","Castellon","Ciudad Real","Cordoba","Cuenca","Girona","Granada","Guadalajara","Gipuzkoa","Huelva","Huesca","Jaen","La Rioja","Leon","Lerida","Lugo","Madrid","Málaga","Murcia","Navarra","Ourense","Palencia","Pontevedra","Salamanca","Segovia","Sevilla","Soria","Tarragona","Santa Cruz de Tenerife","Teruel","Toledo","Valencia","Valladolid","Vizcaya","Zamora","Zaragoza"
+          ]
+        }
+        $("#pais").change(function(){
+          $("#city").text("");
+          $("#city").append("<option>----Seleccionar Ciudad----</option>");
+          pais["espana"].forEach(function(value, index){
+            $("#city").append("<option value='"+value+"'>"+value+"</option>");
+          });
+        });
+
+      </script>
+      <script>
+        function download(filename, textInput) {
+          var element = document.createElement('a');
+          element.setAttribute('href',textInput);
+          element.setAttribute('download', filename);
+          document.body.appendChild(element);
+          element.click();
+          $("#loader").text("");
+        }
+      </script> 
+{% endblock %}

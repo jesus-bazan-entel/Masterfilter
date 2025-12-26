@@ -1,0 +1,556 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Consulta WhatsApp - MasterFilter{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  
+  <!-- Cards de estadísticas -->
+  <div class="row mb-4">
+    <div class="col-xl-4 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-capitalize font-weight-bold">TOTAL PROCESADOS</p>
+                <h5 class="font-weight-bolder mb-0" id="total-procesados">0</h5>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                <i class="material-icons opacity-10">description</i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-4 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-capitalize font-weight-bold">SUBIDO</p>
+                <h5 class="font-weight-bolder mb-0" id="total-subido">0</h5>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                <i class="material-icons opacity-10">upload</i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-4 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-capitalize font-weight-bold">PROCESADO</p>
+                <h5 class="font-weight-bolder mb-0" id="total-completado">0</h5>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-danger shadow text-center border-radius-md">
+                <i class="material-icons opacity-10">check_circle</i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de subida de archivo -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6>Subir archivo</h6>
+        </div>
+        <div class="card-body">
+          <form id="upload-form" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row">
+              <div class="col-md-8">
+                <div class="input-group input-group-outline mb-3">
+                  <input type="file" class="form-control" id="file-input" name="file" accept=".csv,.txt,.xlsx,.xls" required>
+                </div>
+                <small class="text-muted">Sube un archivo CSV, TXT o Excel. Un número con código de país por línea o columna.</small>
+              </div>
+              <div class="col-md-4">
+                <button type="submit" class="btn bg-gradient-success w-100 mb-0" id="btn-procesar">
+                  <i class="material-icons">cloud_upload</i> PROCESAR
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de consultas -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6>Consultas WhatsApp</h6>
+        </div>
+        <div class="card-body px-0 pt-0 pb-2">
+          <div class="table-responsive p-0">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">ID</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">NOMBRE BASE</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">FECHA CARGA</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">REGISTROS</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">PROGRESO</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">ESTADO</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">ACCIÓN</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">DESCARGA</th>
+                </tr>
+              </thead>
+              <tbody id="consultas-table">
+                <!-- Las filas se agregarán dinámicamente aquí -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de progreso -->
+  <div class="modal fade" id="progressModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Procesando números</h5>
+        </div>
+        <div class="modal-body text-center">
+          <div class="spinner-border text-success mb-3" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p id="progress-text">Consultando números en WhatsApp...</p>
+          <div class="progress">
+            <div class="progress-bar bg-success" role="progressbar" id="progress-bar" style="width: 0%"></div>
+          </div>
+          <p class="mt-2 mb-0" id="progress-count">0 / 0</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.table tbody tr {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.badge-status {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-pausado {
+  background-color: #6c757d;
+  color: white;
+}
+
+.badge-procesando {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.badge-completado {
+  background-color: #28a745;
+  color: white;
+}
+
+.badge-error {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-action {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 2px;
+}
+
+.btn-action i {
+  font-size: 18px;
+}
+</style>
+
+<!-- SheetJS para leer archivos Excel -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+<script>
+// Variable para almacenar las consultas
+let consultas = [];
+let consultaIdCounter = 1;
+
+// Cargar consultas al inicio
+document.addEventListener('DOMContentLoaded', function() {
+  cargarConsultas();
+  actualizarEstadisticas();
+});
+
+// Función para leer archivos Excel
+async function leerArchivoExcel(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        // Leer la primera hoja
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        
+        // Extraer números (primera columna o todas las celdas)
+        const phones = [];
+        jsonData.forEach(row => {
+          if (Array.isArray(row)) {
+            row.forEach(cell => {
+              const phone = String(cell).trim();
+              if (phone && phone.length > 0 && phone !== 'undefined') {
+                phones.push(phone);
+              }
+            });
+          }
+        });
+        
+        resolve(phones);
+      } catch (error) {
+        reject(error);
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// Manejar subida de archivo
+document.getElementById('upload-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const fileInput = document.getElementById('file-input');
+  const file = fileInput.files[0];
+  const btnProcesar = document.getElementById('btn-procesar');
+  
+  if (!file) {
+    alert('Por favor selecciona un archivo');
+    return;
+  }
+  
+  let phones = [];
+  const fileName = file.name.toLowerCase();
+  
+  try {
+    // Deshabilitar botón
+    btnProcesar.disabled = true;
+    btnProcesar.innerHTML = '<i class="material-icons">hourglass_empty</i> PROCESANDO...';
+    
+    // Detectar tipo de archivo y procesarlo
+    if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+      // Procesar Excel
+      phones = await leerArchivoExcel(file);
+    } else {
+      // Procesar CSV o TXT
+      const content = await file.text();
+      phones = content.split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+    }
+    
+    if (phones.length === 0) {
+      alert('El archivo está vacío o no contiene números válidos');
+      btnProcesar.disabled = false;
+      btnProcesar.innerHTML = '<i class="material-icons">cloud_upload</i> PROCESAR';
+      return;
+    }
+    
+    if (phones.length > 100) {
+      alert('Máximo 100 números por consulta. Se procesarán los primeros 100.');
+      phones = phones.slice(0, 100);
+    }
+    
+    // Crear nueva consulta
+    const consulta = {
+      id: consultaIdCounter++,
+      nombre: file.name,
+      fecha: new Date().toLocaleString('es-PE'),
+      registros: phones.length,
+      progreso: 0,
+      estado: 'PROCESANDO',
+      phones: phones,
+      resultados: [],
+      taskId: null
+    };
+    
+    consultas.push(consulta);
+    guardarConsultas();
+    actualizarTabla();
+    actualizarEstadisticas();
+    
+    // Resetear formulario
+    fileInput.value = '';
+    btnProcesar.disabled = false;
+    btnProcesar.innerHTML = '<i class="material-icons">cloud_upload</i> PROCESAR';
+    
+    // Procesar números
+    await procesarConsulta(consulta);
+    
+  } catch (error) {
+    alert('Error al leer el archivo: ' + error.message);
+    console.error(error);
+    btnProcesar.disabled = false;
+    btnProcesar.innerHTML = '<i class="material-icons">cloud_upload</i> PROCESAR';
+  }
+});
+
+async function procesarConsulta(consulta) {
+  // Mostrar modal de progreso
+  const modal = new bootstrap.Modal(document.getElementById('progressModal'));
+  modal.show();
+  
+  try {
+    const formData = new FormData();
+    formData.append('phones', consulta.phones.join('\n'));
+    
+    // Actualizar progreso
+    document.getElementById('progress-text').textContent = `Subiendo ${consulta.registros} números...`;
+    document.getElementById('progress-bar').style.width = '25%';
+    document.getElementById('progress-count').textContent = `Iniciando...`;
+    
+    // Subir tarea
+    const response = await fetch('{% url "wsp:bulk_consult" %}', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+      consulta.estado = 'ERROR';
+      alert('Error: ' + data.error);
+      modal.hide();
+      guardarConsultas();
+      actualizarTabla();
+      return;
+    }
+    
+    consulta.taskId = data.task_id;
+    guardarConsultas();
+    
+    document.getElementById('progress-bar').style.width = '50%';
+    document.getElementById('progress-text').textContent = `Procesando números...`;
+    
+    // Hacer polling del estado cada 3 segundos
+    const checkStatus = async () => {
+      try {
+        const statusResponse = await fetch(`/wsp/check-task/${consulta.taskId}/`);
+        const statusData = await statusResponse.json();
+        
+        if (statusData.success) {
+          const progress = statusData.total > 0 ? 
+            Math.round((statusData.success_count / statusData.total) * 100) : 0;
+          
+          document.getElementById('progress-bar').style.width = `${50 + (progress / 2)}%`;
+          document.getElementById('progress-count').textContent = 
+            `${statusData.success_count} / ${statusData.total}`;
+          
+          consulta.progreso = statusData.success_count;
+          actualizarTabla();
+          actualizarEstadisticas();
+          
+          if (statusData.status === 'exported' && statusData.results) {
+            // Completado
+            consulta.resultados = statusData.results;
+            consulta.estado = 'COMPLETADO';
+            consulta.progreso = consulta.registros;
+            
+            document.getElementById('progress-bar').style.width = '100%';
+            document.getElementById('progress-text').textContent = '¡Completado!';
+            
+            setTimeout(() => modal.hide(), 1500);
+            
+            guardarConsultas();
+            actualizarTabla();
+            actualizarEstadisticas();
+          } else if (statusData.status === 'processing' || statusData.status === 'pending') {
+            // Continuar polling
+            setTimeout(checkStatus, 3000);
+          } else if (statusData.status === 'completed') {
+            // Esperar a que se exporte
+            setTimeout(checkStatus, 3000);
+          } else {
+            // Error o estado desconocido
+            consulta.estado = 'ERROR';
+            alert('Error en el procesamiento');
+            modal.hide();
+            guardarConsultas();
+            actualizarTabla();
+          }
+        } else {
+          consulta.estado = 'ERROR';
+          alert('Error: ' + statusData.error);
+          modal.hide();
+          guardarConsultas();
+          actualizarTabla();
+        }
+      } catch (error) {
+        console.error('Error en polling:', error);
+        // Continuar intentando
+        setTimeout(checkStatus, 5000);
+      }
+    };
+    
+    // Iniciar polling después de 3 segundos
+    setTimeout(checkStatus, 3000);
+    
+  } catch (error) {
+    consulta.estado = 'ERROR';
+    alert('Error al procesar: ' + error.message);
+    modal.hide();
+    guardarConsultas();
+    actualizarTabla();
+  }
+}
+
+function actualizarTabla() {
+  const tbody = document.getElementById('consultas-table');
+  tbody.innerHTML = '';
+  
+  consultas.forEach(consulta => {
+    const estadoBadge = getEstadoBadge(consulta.estado);
+    
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="text-xs font-weight-bold ps-4">${consulta.id}</td>
+      <td class="text-xs font-weight-bold">${consulta.nombre}</td>
+      <td class="text-xs">${consulta.fecha}</td>
+      <td class="text-xs font-weight-bold">${consulta.registros}</td>
+      <td class="text-xs font-weight-bold">${consulta.progreso}</td>
+      <td class="text-xs">
+        <span class="badge-status ${estadoBadge.class}">${estadoBadge.text}</span>
+      </td>
+      <td>
+        ${consulta.estado === 'COMPLETADO' ? 
+          `<button class="btn btn-sm bg-gradient-info btn-action" onclick="verDetalles(${consulta.id})" title="Ver detalles">
+            <i class="material-icons">visibility</i>
+          </button>` : 
+          '<span class="text-muted">-</span>'
+        }
+      </td>
+      <td>
+        ${consulta.estado === 'COMPLETADO' ? 
+          `<button class="btn btn-sm bg-gradient-success btn-action" onclick="descargarResultados(${consulta.id})" title="Descargar">
+            <i class="material-icons">download</i>
+          </button>` : 
+          '<span class="text-muted">-</span>'
+        }
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function getEstadoBadge(estado) {
+  const badges = {
+    'PAUSADO': { class: 'badge-pausado', text: 'PAUSADO' },
+    'PROCESANDO': { class: 'badge-procesando', text: 'PROCESANDO' },
+    'COMPLETADO': { class: 'badge-completado', text: 'COMPLETADO' },
+    'ERROR': { class: 'badge-error', text: 'ERROR' }
+  };
+  return badges[estado] || badges['PAUSADO'];
+}
+
+function actualizarEstadisticas() {
+  const totalProcesados = consultas.reduce((sum, c) => sum + c.registros, 0);
+  const totalSubido = consultas.reduce((sum, c) => sum + c.registros, 0);
+  const totalCompletado = consultas.filter(c => c.estado === 'COMPLETADO').reduce((sum, c) => sum + c.progreso, 0);
+  
+  document.getElementById('total-procesados').textContent = totalProcesados;
+  document.getElementById('total-subido').textContent = totalSubido;
+  document.getElementById('total-completado').textContent = totalCompletado;
+}
+
+function verDetalles(id) {
+  const consulta = consultas.find(c => c.id === id);
+  if (!consulta) return;
+  
+  let detalles = `Consulta: ${consulta.nombre}\n`;
+  detalles += `Total: ${consulta.registros}\n`;
+  detalles += `Con WhatsApp: ${consulta.resultados.filter(r => r.has_whatsapp).length}\n`;
+  detalles += `Sin WhatsApp: ${consulta.resultados.filter(r => !r.has_whatsapp).length}\n\n`;
+  detalles += 'Resultados:\n';
+  
+  consulta.resultados.forEach(r => {
+    detalles += `${r.phone}: ${r.has_whatsapp ? '✓ Tiene WhatsApp' : '✗ No tiene WhatsApp'}\n`;
+  });
+  
+  alert(detalles);
+}
+
+function descargarResultados(id) {
+  const consulta = consultas.find(c => c.id === id);
+  if (!consulta) return;
+  
+  let csv = 'Número,Tiene WhatsApp,Estado\n';
+  consulta.resultados.forEach(r => {
+    csv += `${r.phone},${r.has_whatsapp ? 'SI' : 'NO'},${r.status}\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `whatsapp_${consulta.id}_${Date.now()}.csv`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+// Guardar y cargar consultas del localStorage
+function guardarConsultas() {
+  localStorage.setItem('wsp_consultas', JSON.stringify(consultas));
+}
+
+function cargarConsultas() {
+  const saved = localStorage.getItem('wsp_consultas');
+  if (saved) {
+    consultas = JSON.parse(saved);
+    consultaIdCounter = Math.max(...consultas.map(c => c.id), 0) + 1;
+    actualizarTabla();
+  }
+}
+</script>
+{% endblock %}
